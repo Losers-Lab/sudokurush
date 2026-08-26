@@ -8,14 +8,11 @@ import { LocalConnection } from "./net/localConnection.ts";
 import { newRoomCode, normalizeJoinCode } from "./net/openRooms.ts";
 import { SocketConnection } from "./net/socketConnection.ts";
 import { sfx } from "./audio/sfx.ts";
+import { DISCORD_UA, isEmbedded, stampEmbedAttributes } from "./discord.ts";
 import { el, type Screen } from "./ui/dom.ts";
 import { createLobbyScreen } from "./ui/lobbyScreen.ts";
 import { createVictoryScreen } from "./ui/victoryScreen.ts";
 
-// Discord mobile hosts activities as a TOP-LEVEL WebView (native bridge, no
-// parent frame), so the frame check alone misses phones; Discord's WebView
-// announces itself in the user agent instead.
-const DISCORD_UA = /discord/i.test(navigator.userAgent);
 const CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID ?? "";
 const NAME_KEY = "sudokurush.name";
 const UID_KEY = "sudokurush.uid";
@@ -69,7 +66,7 @@ function discordAvatarUrl(userId: string, hash: string): string {
  * Discord degrades to a guest seat rather than blocking play.
  */
 async function resolveIdentity(): Promise<Identity> {
-  const embedded = window.frameElement !== null || DISCORD_UA;
+  const embedded = isEmbedded();
   if (!embedded || !CLIENT_ID) {
     if (embedded && !CLIENT_ID) {
       console.warn(
@@ -144,6 +141,9 @@ async function resolveIdentity(): Promise<Identity> {
 /* ------------------------------------------------------------------ */
 /* Session state                                                       */
 /* ------------------------------------------------------------------ */
+
+// Embed styling from first paint; the host's dark/light choice arrives later.
+stampEmbedAttributes();
 
 const identity = await resolveIdentity();
 
