@@ -19,7 +19,7 @@ import {
   createLobby,
   judgePlacement,
   type LobbyState,
-} from "./lobby-core";
+} from "../../shared/lobby-core";
 import { BROKER_SINGLETON } from "./broker";
 import { rejectUpgrade } from "./upgrade";
 
@@ -357,6 +357,9 @@ export class GameRoom extends DurableObject<Env> {
         if (ws) {
           this.sendTo(ws, { t: "invalid", i: judged.i });
         }
+        // Mistake counts show on every player panel, so the corrected total
+        // fans out with a snapshot even though the digit itself stays private.
+        this.broadcast({ t: "snapshot", snapshot: this.snapshot() });
         return;
       }
       case "accepted": {

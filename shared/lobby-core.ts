@@ -1,5 +1,5 @@
-import type { Difficulty, LobbySnapshot, Player } from "../../shared/protocol";
-import { isValidCellIndex, isValidDigit } from "../../shared/protocol";
+import type { Difficulty, LobbySnapshot, Player } from "./protocol";
+import { isValidCellIndex, isValidDigit } from "./protocol";
 import { generatePuzzle, gridToString, isDifficulty } from "./sudoku";
 
 /**

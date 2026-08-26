@@ -1,0 +1,516 @@
+/* SudokuRush — warm paper board on deep ink. Deliberately its own look:
+   the game is a shared puzzle, so the board reads like paper and every
+   player gets an unmistakable ink color. */
+
+:root {
+  --bg: #10141d;
+  --surface: #1a2130;
+  --surface-2: #212a3d;
+  --border: #2c3750;
+  --text: #e9edf5;
+  --text-dim: #93a0b8;
+  --accent: #ff8552;
+  --accent-strong: #ff6b35;
+  --good: #4fc98b;
+  --bad: #e05656;
+  --paper: #f7f3ea;
+  --paper-line: #c9c2b2;
+  --ink: #26303f;
+
+  /* Player ink palette — one hue per seat, assigned by roster order. */
+  --p0: #e05656;
+  --p1: #4f8bc9;
+  --p2: #4fc98b;
+  --p3: #c9a94f;
+  --p4: #9b6fd8;
+  --p5: #e07fb2;
+  --p6: #58c4d4;
+  --p7: #d87f4f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #1c2536 0%, transparent 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 16px clamp(10px, 3vw, 28px) 40px;
+}
+
+h1, h2 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+.app-title {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+.app-tagline {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+}
+
+.card-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+/* ---------- shared controls ---------- */
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 60ms ease, background 120ms ease;
+}
+.btn:hover { background: #293349; }
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #24130b;
+  font-weight: 700;
+}
+.btn-primary:hover { background: var(--accent-strong); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.field-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.field-input {
+  width: 100%;
+  max-width: 280px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+
+/* ---------- lobby screen ---------- */
+
+.lobby-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 480px;
+  margin: 4vh auto 0;
+}
+
+.code-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.code-label,
+.code-hint {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.code-value {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: ui-monospace, "JetBrains Mono", "Fira Code", monospace;
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  letter-spacing: 0.22em;
+  cursor: copy;
+  padding: 0;
+}
+
+.name-row { display: flex; flex-direction: column; }
+
+.roster-card,
+.play-screen .side-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.roster-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roster-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.roster-row.offline { opacity: 0.45; }
+
+.roster-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roster-badges {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.badge {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+}
+
+.badge-host { background: rgba(255, 133, 82, 0.18); color: var(--accent); }
+.badge-online { background: rgba(79, 201, 139, 0.15); color: var(--good); }
+.badge-miss { background: rgba(224, 86, 86, 0.16); color: var(--bad); }
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.lobby-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.waiting-note {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ---------- play screen ---------- */
+
+.play-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.play-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
+.chip-code {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
+.chip-timer {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.notice-bar {
+  min-height: 0;
+  border-radius: 10px;
+  padding: 0 14px;
+  overflow: hidden;
+  transition: all 150ms ease;
+  font-size: 0.92rem;
+}
+.notice-bar.visible { min-height: 38px; padding: 9px 14px; }
+.notice-bar.info { background: rgba(79, 201, 139, 0.12); color: var(--good); }
+.notice-bar.error { background: rgba(224, 86, 86, 0.14); color: var(--bad); }
+
+.play-main {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.board-host {
+  flex: 1 1 320px;
+  display: flex;
+  justify-content: center;
+}
+
+.side-panel {
+  flex: 0 1 250px;
+  min-width: 210px;
+}
+
+.player-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.player-row.offline { opacity: 0.45; }
+
+.player-name { font-weight: 600; }
+
+.player-stats {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the board ---------- */
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: min(92vw, 62vh, 520px);
+  aspect-ratio: 1;
+  background: var(--paper-line);
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 1px;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.cell {
+  position: relative;
+  border: none;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell.editable:hover { background: #efe9db; }
+
+.cell.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+  z-index: 2;
+}
+
+.cell-value {
+  font-size: clamp(1.05rem, 3.4vw, 1.7rem);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.cell.given .cell-value {
+  font-weight: 800;
+  color: #171d27;
+}
+
+/* Player ink colors ring their placed digits. */
+.cell.owner-0 { box-shadow: inset 0 0 0 2px var(--p0); }
+.cell.owner-1 { box-shadow: inset 0 0 0 2px var(--p1); }
+.cell.owner-2 { box-shadow: inset 0 0 0 2px var(--p2); }
+.cell.owner-3 { box-shadow: inset 0 0 0 2px var(--p3); }
+.cell.owner-4 { box-shadow: inset 0 0 0 2px var(--p4); }
+.cell.owner-5 { box-shadow: inset 0 0 0 2px var(--p5); }
+.cell.owner-6 { box-shadow: inset 0 0 0 2px var(--p6); }
+.cell.owner-7 { box-shadow: inset 0 0 0 2px var(--p7); }
+
+.cell.owner-0 .cell-value { color: var(--p0); }
+.cell.owner-1 .cell-value { color: var(--p1); }
+.cell.owner-2 .cell-value { color: var(--p2); }
+.cell.owner-3 .cell-value { color: var(--p3); }
+.cell.owner-4 .cell-value { color: var(--p4); }
+.cell.owner-5 .cell-value { color: var(--p5); }
+.cell.owner-6 .cell-value { color: var(--p6); }
+.cell.owner-7 .cell-value { color: var(--p7); }
+
+/* Peer selection rings — up to four simultaneous, visually distinct from
+   your own accent outline. */
+.cell.peer-0 { outline: 2px dashed var(--p1); outline-offset: -2px; }
+.cell.peer-1 { outline: 2px dashed var(--p2); outline-offset: -2px; }
+.cell.peer-2 { outline: 2px dashed var(--p3); outline-offset: -2px; }
+.cell.peer-3 { outline: 2px dashed var(--p4); outline-offset: -2px; }
+
+@keyframes wrong-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
+.cell.wrong {
+  animation: wrong-shake 0.4s ease;
+  background: #f6d7d2 !important;
+}
+
+/* Shared pencil marks: 3x3 mini-grid inside the cell. */
+.cell-notes {
+  position: absolute;
+  inset: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  pointer-events: none;
+}
+
+.note-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.45rem, 1.5vw, 0.72rem);
+  color: transparent;
+  line-height: 1;
+}
+
+.note-slot.on {
+  color: #5b667a;
+  font-weight: 700;
+}
+
+/* ---------- numpad ---------- */
+
+.numpad-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(38px, 56px));
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-digit {
+  aspect-ratio: 1;
+  font-size: clamp(1rem, 3vw, 1.35rem);
+  font-weight: 700;
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper-line);
+  padding: 0;
+}
+.btn-digit:hover { background: #fffdf7; }
+
+.btn-mode.active {
+  background: rgba(255, 133, 82, 0.2);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.mode-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .numpad { grid-template-columns: repeat(9, 1fr); gap: 4px; }
+  .side-panel { order: 2; width: 100%; flex-basis: 100%; }
+}
+
+/* ---------- victory ---------- */
+
+.victory-screen {
+  max-width: 520px;
+  margin: 6vh auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.victory-banner {
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  color: var(--accent);
+  text-align: center;
+}
+
+.victory-summary {
+  text-align: center;
+  color: var(--text-dim);
+  margin: 6px 0 0;
+}
+
+.contribution-list .roster-name {
+  flex: 1;
+}
