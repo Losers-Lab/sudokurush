@@ -1,4 +1,4 @@
-import type { Env } from "./env";
+import type { Env } from "./env.ts";
 
 /**
  * Answers one question: how many simultaneously live lobbies are we willing

@@ -1,4 +1,4 @@
-import type { ClientMessage, ServerMessage } from "../../../shared/protocol";
+import { DEFAULT_MAX_PLAYERS, type ClientMessage, type ServerMessage } from "../../../shared/protocol.ts";
 import {
   applyHello,
   applyLeave,
@@ -9,8 +9,8 @@ import {
   judgePlacement,
   type Effect,
   type LobbyState,
-} from "../../../shared/lobby-core";
-import { dispatchMessage, type Connection, type ConnectionHandlers } from "./connection";
+} from "../../../shared/lobby-core.ts";
+import { dispatchMessage, type Connection, type ConnectionHandlers } from "./connection.ts";
 
 /**
  * In-browser loopback for solo practice. It runs the relay's EXACT rules —
@@ -114,9 +114,10 @@ export class LocalConnection implements Connection {
     if (!state) {
       return;
     }
-    const result = applyHello(state, this.playerId, name, avatar, Date.now());
+    // Solo cannot overflow the roster; the cap argument is the shared default.
+    const result = applyHello(state, this.playerId, name, avatar, Date.now(), DEFAULT_MAX_PLAYERS);
     this.enqueue({ t: "welcome", you: this.playerId, snapshot: this.snapshot() });
-    if (result.effect?.kind === "host-changed") {
+    if (result.ok && result.effect?.kind === "host-changed") {
       this.enqueue({ t: "host", hostId: result.effect.hostId });
     }
     this.enqueue({ t: "snapshot", snapshot: this.snapshot() });

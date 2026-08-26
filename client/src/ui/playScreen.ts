@@ -1,6 +1,6 @@
-import type { GameState } from "../game/gameClient";
-import { createBoardView, type BoardView } from "../board/boardView";
-import { el, formatClock, replaceChildren, type Screen } from "./dom";
+import type { GameState } from "../game/gameClient.ts";
+import { createBoardView, type BoardView } from "../board/boardView.ts";
+import { el, formatClock, replaceChildren, type Screen } from "./dom.ts";
 
 export type PlayActions = {
   /** Digit submitted in the current mode; the screen owns number-vs-notes. */

@@ -1,6 +1,6 @@
-import type { Difficulty, LobbySnapshot, Player } from "./protocol";
-import { isValidCellIndex, isValidDigit } from "./protocol";
-import { generatePuzzle, gridToString, isDifficulty } from "./sudoku";
+import type { Difficulty, LobbySnapshot, Player } from "./protocol.ts";
+import { DEFAULT_MAX_PLAYERS, isValidCellIndex, isValidDigit } from "./protocol.ts";
+import { generatePuzzle, gridToString, isDifficulty } from "./sudoku.ts";
 
 /**
  * Pure authoritative rules of the shared board — no Durable Object state,
@@ -121,12 +121,22 @@ export function isMember(state: LobbyState, playerId: string): boolean {
   return findPlayer(state, playerId) !== undefined;
 }
 
+/** Hard ceiling so a misconfigured MAX_PLAYERS var cannot admit unbounded rooms. */
+export function resolveMaxPlayers(raw: string | undefined): number {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  if (!Number.isInteger(parsed)) {
+    return DEFAULT_MAX_PLAYERS;
+  }
+  return Math.min(30, Math.max(1, parsed));
+}
+
 /**
- * Hello handling. A brand-new id takes a seat; a known id is a returning
- * player (refresh or reconnect) refreshing their identity — never a duplicate
- * row. First joiner becomes host; a page refresh that closed the old socket
- * before the new hello arrived can hand the crown away, so the refresher
- * reclaims it and Start never wanders off the room's owner.
+ * Hello handling. A brand-new id takes a seat (while the roster cap holds);
+ * a known id is a returning player (refresh or reconnect) refreshing their
+ * identity — never a duplicate row. First joiner becomes host; a page
+ * refresh that closed the old socket before the new hello arrived can hand
+ * the crown away, so the refresher reclaims it and Start never wanders off
+ * the room's owner.
  */
 export function applyHello(
   state: LobbyState,
@@ -134,10 +144,14 @@ export function applyHello(
   rawName: unknown,
   rawAvatar: unknown,
   now: number,
-): ApplyOk {
+  maxPlayers: number,
+): ApplyOk | ApplyErr {
   const name = sanitizeName(rawName);
   const avatar = sanitizeAvatar(rawAvatar);
   let player = findPlayer(state, playerId);
+  if (!player && state.players.length >= Math.max(1, maxPlayers)) {
+    return { ok: false, reason: "lobby-full" };
+  }
   if (!player) {
     player = { id: playerId, name, avatar, joinedAt: now, lastSeenAt: now };
     state.players.push(player);

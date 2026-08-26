@@ -1,4 +1,4 @@
-import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, isValidRoomCode } from "../../../shared/roomCodes";
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, isValidRoomCode } from "../../../shared/roomCodes.ts";
 
 export function newRoomCode(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(ROOM_CODE_LENGTH));

@@ -1,4 +1,4 @@
-import type { GameState } from "../game/gameClient";
+import type { GameState } from "../game/gameClient.ts";
 
 export type Screen = {
   update(state: GameState): void;

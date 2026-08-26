@@ -1,6 +1,6 @@
-import type { ClientMessage } from "../../../shared/protocol";
-import { PING_MESSAGE } from "../../../shared/protocol";
-import { dispatchMessage, type CloseInfo, type Connection, type ConnectionHandlers } from "./connection";
+import type { ClientMessage } from "../../../shared/protocol.ts";
+import { PING_MESSAGE } from "../../../shared/protocol.ts";
+import { dispatchMessage, type CloseInfo, type Connection, type ConnectionHandlers } from "./connection.ts";
 
 const PING_INTERVAL_MS = 25_000;
 

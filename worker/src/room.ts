@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
-import { planGhostSweep } from "./ghost-sweep";
-import type { Env } from "./env";
+import { planGhostSweep } from "./ghost-sweep.ts";
+import type { Env } from "./env.ts";
 import {
   CLOSE_HELLO_TIMEOUT,
   CLOSE_ROOM_FULL,
@@ -9,7 +9,7 @@ import {
   PONG_MESSAGE,
   type ClientMessage,
   type ServerMessage,
-} from "../../shared/protocol";
+} from "../../shared/protocol.ts";
 import {
   applyHello,
   applyLeave,
@@ -18,14 +18,14 @@ import {
   buildSnapshot,
   createLobby,
   judgePlacement,
+  resolveMaxPlayers,
   type LobbyState,
-} from "../../shared/lobby-core";
-import { BROKER_SINGLETON } from "./broker";
-import { rejectUpgrade } from "./upgrade";
+} from "../../shared/lobby-core.ts";
+import { BROKER_SINGLETON } from "./broker.ts";
+import { rejectUpgrade } from "./upgrade.ts";
 
 const MAX_NAME_LENGTH = 32;
-const HELLO_TIMEOUT_MS = 30_000;
-// Doubles as the broker heartbeat cadence; ROOM_TTL_MS in broker.ts must
+const HELLO_TIMEOUT_MS = 30_000;// Doubles as the broker heartbeat cadence; ROOM_TTL_MS in broker.ts must
 // stay a comfortable multiple of this.
 const ALARM_INTERVAL_MS = 10 * 60_000;
 // Non-cursor messages are player-paced; the bucket only exists so a hostile
@@ -42,15 +42,6 @@ const GHOST_STAMP_INTERVAL_MS = ALARM_INTERVAL_MS;
 // Selected-cell sharing is visual sugar; ~6-7 updates/s per seat reads live
 // without turning every move into a billable relay request.
 const CURSOR_MIN_INTERVAL_MS = 150;
-
-/** Hard ceiling so a misconfigured MAX_PLAYERS var cannot admit unbounded rooms. */
-export function resolveMaxPlayers(raw: string | undefined): number {
-  const parsed = Number.parseInt(raw ?? "", 10);
-  if (!Number.isInteger(parsed)) {
-    return DEFAULT_MAX_PLAYERS;
-  }
-  return Math.min(30, Math.max(1, parsed));
-}
 
 /**
  * Plain-object form of LobbyState for storage: Durable Object storage
@@ -287,7 +278,13 @@ export class GameRoom extends DurableObject<Env> {
     this.pending.delete(ws);
     // Register before any reply so the welcome finds its socket.
     this.sockets.set(playerId, ws);
-    const before = applyHello(state, playerId, rawName, rawAvatar, Date.now());
+    const before = applyHello(state, playerId, rawName, rawAvatar, Date.now(), this.maxPlayers);
+    if (!before.ok) {
+      // Lost a race against a concurrent joiner between upgrade and hello.
+      this.sendTo(ws, { t: "rejected", reason: before.reason });
+      ws.close(CLOSE_ROOM_FULL, before.reason);
+      return;
+    }
     if (!wasMember) {
       console.log(
         JSON.stringify({

@@ -1,12 +1,12 @@
-import { BROKER_SINGLETON } from "./broker";
-import { CLOSE_CAPACITY, CLOSE_UNVERIFIED } from "../../shared/protocol";
-import { admitRoomId } from "./roomIds";
-import { exchangeCode } from "./token";
-import { rejectUpgrade } from "./upgrade";
-import type { Env } from "./env";
+import { BROKER_SINGLETON } from "./broker.ts";
+import { CLOSE_CAPACITY, CLOSE_UNVERIFIED } from "../../shared/protocol.ts";
+import { admitRoomId } from "./roomIds.ts";
+import { exchangeCode } from "./token.ts";
+import { rejectUpgrade } from "./upgrade.ts";
+import type { Env } from "./env.ts";
 
-export { GameRoom } from "./room";
-export { RoomBroker } from "./broker";
+export { GameRoom } from "./room.ts";
+export { RoomBroker } from "./broker.ts";
 
 const ROOM_ROUTE = /^\/api\/room\/([^/]+)$/;
 const LEGAL_ROUTES = new Map([

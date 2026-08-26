@@ -1,4 +1,4 @@
-import type { Env } from "./env";
+import type { Env } from "./env.ts";
 
 const POSITIVE_CACHE_TTL_MS = 60_000;
 

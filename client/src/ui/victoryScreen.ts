@@ -1,6 +1,6 @@
-import type { GameState } from "../game/gameClient";
-import type { Difficulty } from "../../../shared/protocol";
-import { el, formatClock, replaceChildren, type Screen } from "./dom";
+import type { GameState } from "../game/gameClient.ts";
+import type { Difficulty } from "../../../shared/protocol.ts";
+import { el, formatClock, replaceChildren, type Screen } from "./dom.ts";
 
 export type VictoryActions = {
   onPlayAgain(difficulty: Difficulty): void;

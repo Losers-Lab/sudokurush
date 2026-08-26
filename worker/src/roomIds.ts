@@ -1,6 +1,6 @@
-import { isValidRoomCode } from "../../shared/roomCodes";
-import type { Env } from "./env";
-import { verifyInstance } from "./instances";
+import { isValidRoomCode } from "../../shared/roomCodes.ts";
+import type { Env } from "./env.ts";
+import { verifyInstance } from "./instances.ts";
 
 /**
  * Room ids are namespaced by origin so the Discord path and casual browser

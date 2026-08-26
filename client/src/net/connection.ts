@@ -1,4 +1,4 @@
-import type { ClientMessage, ServerMessage } from "../../../shared/protocol";
+import type { ClientMessage, ServerMessage } from "../../../shared/protocol.ts";
 
 export type CloseInfo = { code: number; reason: string };
 

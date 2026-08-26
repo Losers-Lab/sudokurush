@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
-import type { Env } from "./env";
-import { CloudflareRoomLimit, type RoomLimitSource } from "./capacity";
+import type { Env } from "./env.ts";
+import { CloudflareRoomLimit, type RoomLimitSource } from "./capacity.ts";
 
 /** Singleton name; every worker instance resolves to this one broker DO. */
 export const BROKER_SINGLETON = "lobby-broker";

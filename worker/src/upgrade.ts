@@ -1,4 +1,4 @@
-import type { ServerMessage } from "../../shared/protocol";
+import type { ServerMessage } from "../../shared/protocol.ts";
 
 /**
  * Rejections must still complete the WebSocket handshake: the client receives

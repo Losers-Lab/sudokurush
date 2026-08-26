@@ -1,6 +1,6 @@
-import type { GameState } from "../game/gameClient";
-import type { Difficulty } from "../../../shared/protocol";
-import { el, replaceChildren, type Screen } from "./dom";
+import type { GameState } from "../game/gameClient.ts";
+import type { Difficulty } from "../../../shared/protocol.ts";
+import { el, replaceChildren, type Screen } from "./dom.ts";
 
 export type LobbyActions = {
   onStart(difficulty: Difficulty): void;

@@ -1,5 +1,5 @@
-import type { GameState } from "../game/gameClient";
-import { el } from "../ui/dom";
+import type { GameState } from "../game/gameClient.ts";
+import { el } from "../ui/dom.ts";
 
 /**
  * The one shared Sudoku board. Purely presentational: it paints whatever the

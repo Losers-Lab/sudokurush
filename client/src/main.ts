@@ -1,16 +1,16 @@
 import "./theme.css";
-import type { Difficulty } from "../../shared/protocol";
-import { GameClient, type GameState } from "./game/gameClient";
-import type { BoardView } from "./board/boardView";
-import { createPlayScreen } from "./ui/playScreen";
-import type { ConnectionHandlers } from "./net/connection";
-import { LocalConnection } from "./net/localConnection";
-import { newRoomCode, normalizeJoinCode } from "./net/openRooms";
-import { SocketConnection } from "./net/socketConnection";
-import { sfx } from "./audio/sfx";
-import { el, type Screen } from "./ui/dom";
-import { createLobbyScreen } from "./ui/lobbyScreen";
-import { createVictoryScreen } from "./ui/victoryScreen";
+import type { Difficulty } from "../../shared/protocol.ts";
+import { GameClient, type GameState } from "./game/gameClient.ts";
+import type { BoardView } from "./board/boardView.ts";
+import { createPlayScreen } from "./ui/playScreen.ts";
+import type { ConnectionHandlers } from "./net/connection.ts";
+import { LocalConnection } from "./net/localConnection.ts";
+import { newRoomCode, normalizeJoinCode } from "./net/openRooms.ts";
+import { SocketConnection } from "./net/socketConnection.ts";
+import { sfx } from "./audio/sfx.ts";
+import { el, type Screen } from "./ui/dom.ts";
+import { createLobbyScreen } from "./ui/lobbyScreen.ts";
+import { createVictoryScreen } from "./ui/victoryScreen.ts";
 
 // Discord mobile hosts activities as a TOP-LEVEL WebView (native bridge, no
 // parent frame), so the frame check alone misses phones; Discord's WebView

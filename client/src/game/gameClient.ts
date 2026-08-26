@@ -1,5 +1,5 @@
-import type { LobbySnapshot, ServerMessage } from "../../../shared/protocol";
-import type { CloseInfo, Connection } from "../net/connection";
+import type { LobbySnapshot, ServerMessage } from "../../../shared/protocol.ts";
+import type { CloseInfo, Connection } from "../net/connection.ts";
 
 const TICK_MS = 500;
 const NOTICE_MS = 4000;
