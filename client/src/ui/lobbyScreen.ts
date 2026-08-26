@@ -84,8 +84,10 @@ export function createLobbyScreen(root: HTMLElement, actions: LobbyActions): Scr
   function paintRoster(state: GameState): void {
     replaceChildren(
       rosterList,
-      ...state.players.map((player) => {
+      ...state.players.map((player, index) => {
         const row = el("li", `roster-row${player.online ? "" : " offline"}`);
+        // Every seat owns a hue; it follows the player across UI surfaces.
+        row.style.setProperty("--pc", `var(--p${index % 8})`);
         const avatar =
           player.avatar
             ? (() => {
@@ -100,10 +102,13 @@ export function createLobbyScreen(root: HTMLElement, actions: LobbyActions): Scr
           name.textContent += " (you)";
         }
         const badges = el("span", "roster-badges");
+        badges.append(el("i", `online-dot${player.online ? " on" : ""}`));
         if (player.isHost) {
           badges.append(el("span", "badge badge-host", "host"));
         }
-        badges.append(el("span", `badge ${player.online ? "badge-online" : "badge-offline"}`, player.online ? "online" : "offline"));
+        badges.append(
+          el("span", `badge ${player.online ? "badge-online" : "badge-offline"}`, player.online ? "online" : "offline"),
+        );
         row.append(avatar, name, badges);
         return row;
       }),

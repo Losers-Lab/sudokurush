@@ -465,11 +465,29 @@ const joinCode =
     ? normalizeJoinCode(new URLSearchParams(window.location.search).get("room"))
     : null;
 
+// Demo/testing shortcuts (#solo, #play): jump straight into a practice
+// session, optionally dealing a puzzle immediately. Harmless in production;
+// handy for screenshots and quick checks.
+const demoMode = window.location.hash === "#solo" || window.location.hash === "#play";
+const autoDeal = window.location.hash === "#play";
+
 if (identity.instanceId !== null) {
   // A Discord instance IS its room; browser-style codes never apply there.
   openSocketRoom(identity.instanceId);
 } else if (joinCode) {
   openSocketRoom(`open:${joinCode}`);
+} else if (demoMode) {
+  openSolo();
 } else {
   showBoot();
+}
+
+if (demoMode && autoDeal) {
+  const dealWhenReady = setInterval(() => {
+    if (latestState?.phase === "lobby" && latestState.isHost) {
+      clearInterval(dealWhenReady);
+      client?.startGame("easy");
+    }
+  }, 200);
+  setTimeout(() => clearInterval(dealWhenReady), 10_000);
 }

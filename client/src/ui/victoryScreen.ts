@@ -54,10 +54,16 @@ export function createVictoryScreen(root: HTMLElement, actions: VictoryActions):
     update(state: GameState) {
       summary.textContent = `Solved together in ${formatClock(state.elapsedSeconds)} · ${DIFFICULTY_LABELS[state.difficulty]}`;
       const rows = [...state.players].sort((a, b) => b.placements - a.placements || a.name.localeCompare(b.name));
+      const medals = ["🥇", "🥈", "🥉"];
       replaceChildren(
         table,
-        ...rows.map((player) => {
-          const row = el("li", "roster-row");
+        ...rows.map((player, index) => {
+          const rankClass = index < 3 ? ` rank-${index + 1}` : "";
+          const row = el("li", `roster-row${rankClass}`);
+          row.style.setProperty("--pc", `var(--p${index % 8})`);
+          if (index < medals.length) {
+            row.append(el("span", "medal", medals[index]!));
+          }
           const nameSpan = el("span", "roster-name");
           nameSpan.textContent =
             (player.isHost ? "♛ " : "") + player.name + (player.isYou ? " (you)" : "");

@@ -51,6 +51,8 @@ export function createBoardView(root: HTMLElement, callbacks: BoardCallbacks): B
   const peerCursors = new Map<string, number>();
   // playerId -> palette slot derived from roster order at last update.
   const ownerClasses = new Map<string, string>();
+  // Last painted glyph per cell; a fresh digit triggers its pop-in.
+  const previousValues: string[] = new Array(CELL_COUNT).fill(".");
   let destroyed = false;
 
   for (let i = 0; i < CELL_COUNT; i++) {
@@ -140,9 +142,15 @@ export function createBoardView(root: HTMLElement, callbacks: BoardCallbacks): B
             slot.classList.remove("on");
           }
           const ownerClass = ownerClasses.get(state.owners[String(i)] ?? "");
+          cell.root.classList.remove("pop");
           cell.root.className = cell.root.className.replace(/owner-\d/g, "").trim();
           if (ownerClass && !isGiven) {
             cell.root.classList.add(ownerClass);
+          }
+          if (previousValues[i] === "." && !isGiven) {
+            // Freshly placed by anyone — celebrate it.
+            void cell.root.offsetWidth;
+            cell.root.classList.add("pop");
           }
         } else {
           cell.value.textContent = "";
@@ -155,6 +163,9 @@ export function createBoardView(root: HTMLElement, callbacks: BoardCallbacks): B
       }
       paintSelection();
       paintPeerCursors();
+      for (let i = 0; i < CELL_COUNT; i++) {
+        previousValues[i] = state.board[i] ?? ".";
+      }
     },
     flashWrong(i: number) {
       if (destroyed) {

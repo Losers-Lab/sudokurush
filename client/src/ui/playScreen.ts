@@ -65,15 +65,30 @@ export function createPlayScreen(
   });
 
   function paintPlayers(state: GameState): void {
+    // Total blanks is the shared goal everyone's bar fills toward.
+    const totalEditable = [...state.givens].filter((char) => char === ".").length || 1;
     replaceChildren(
       playerList,
-      ...state.players.map((player) => {
+      ...state.players.map((player, index) => {
         const row = el("li", `player-row${player.online ? "" : " offline"}`);
+        row.style.setProperty("--pc", `var(--p${index % 8})`);
         const nameSpan = el("span", "player-name");
         nameSpan.textContent =
           (player.isHost ? "♛ " : "") + player.name + (player.isYou ? " (you)" : "");
-        const stats = el("span", "player-stats", `${player.placements} placed · ${player.mistakes} misses`);
-        row.append(nameSpan, stats);
+        const stats = el(
+          "span",
+          "player-stats",
+          `${player.placements} placed · ${player.mistakes} miss${player.mistakes === 1 ? "" : "es"}`,
+        );
+        const progress = el("div", "player-progress");
+        const fill = el("div", "player-progress-fill");
+        const pct = Math.min(100, Math.round((player.placements / totalEditable) * 100));
+        fill.style.width = `${pct}%`;
+        if (pct > 0 && player.online) {
+          fill.style.boxShadow = "0 0 10px currentColor";
+        }
+        progress.append(fill);
+        row.append(nameSpan, stats, progress);
         return row;
       }),
     );
