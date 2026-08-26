@@ -18,6 +18,14 @@
   --text-dim: #a89ede;
   --text-faint: #7a71a8;
 
+  /* Translucent washes for rows/badges/tracks on dark surfaces; themes that
+     flip to light backgrounds swap these for dark-on-light equivalents. */
+  --wash: rgba(255, 255, 255, 0.035);
+  --wash-line: rgba(255, 255, 255, 0.06);
+  --wash-strong: rgba(255, 255, 255, 0.08);
+  --code-card-a: #251d52;
+  --code-card-b: #1b1540;
+
   --accent-a: #ff8a5c;
   --accent-b: #ff5c8a;
   --teal: #38e1c6;
@@ -267,7 +275,7 @@ select.field-input option {
   inset: 1.5px;
   z-index: -1;
   border-radius: 16.5px;
-  background: linear-gradient(160deg, #251d52 0%, #1b1540 100%);
+  background: linear-gradient(160deg, var(--code-card-a) 0%, var(--code-card-b) 100%);
 }
 @property --rim-angle {
   syntax: "<angle>";
@@ -326,8 +334,8 @@ select.field-input option {
   display: flex;
   align-items: center;
   gap: 11px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--wash);
+  border: 1px solid var(--wash-line);
   border-left: 3px solid var(--pc);
   border-radius: 12px;
   padding: 9px 12px;
@@ -362,7 +370,7 @@ select.field-input option {
   letter-spacing: 0.09em;
   border-radius: 999px;
   padding: 3px 9px;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--wash-strong);
   color: var(--text-dim);
 }
 .badge-host {
@@ -543,7 +551,7 @@ select.field-input option {
   gap: 5px;
   padding: 9px 11px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--wash);
   border-left: 3px solid var(--pc);
   transition: opacity 200ms ease;
 }
@@ -566,7 +574,7 @@ select.field-input option {
 .player-progress {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--wash-strong);
   overflow: hidden;
 }
 .player-progress-fill {
