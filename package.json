@@ -1,0 +1,13 @@
+{
+  "name": "sudokurush",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "docker compose up --build",
+    "install:all": "npm --prefix client install && npm --prefix worker install",
+    "test": "node --test tests/*.test.mjs tests/*.test.ts",
+    "packs:build": "node scripts/run-packs-build.mjs",
+    "packs:validate": "node scripts/validate-puzzlepack.mjs assets/puzzles/*.puzzlepack.json",
+    "verify:room": "node scripts/verify-room.mjs"
+  }
+}

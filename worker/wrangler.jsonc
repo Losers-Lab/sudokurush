@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sudokurush",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "vars": {
+    // Browser visitors get create/join-by-code rooms. These live in their own
+    // `open:` namespace; Discord instances stay verified and unreachable from
+    // the browser path, and embedded clients never join open rooms.
+    "OPEN_ROOMS": "true",
+    // Fill in before deploying a Discord-enabled build (also set the secret
+    // DISCORD_CLIENT_SECRET via `wrangler secret put`).
+    "DISCORD_CLIENT_ID": ""
+  },
+  "assets": {
+    "directory": "../client/dist",
+    "binding": "AppAssets",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOM", "class_name": "GameRoom" },
+      { "name": "BROKER", "class_name": "RoomBroker" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GameRoom", "RoomBroker"] }],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.25
+  }
+  // Optional: bind a KV namespace named LIMITS_KV and write a number or
+  // {"maxRooms": N} to the "limits" key to retune the room-capacity gate
+  // without a redeploy. Unbound keeps LIMITS_KV undefined and capacity falls
+  // back to plan detection.
+}

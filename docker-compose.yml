@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - client_node_modules:/app/client/node_modules
+      - worker_node_modules:/app/worker/node_modules
+    ports:
+      - "8787:8787"
+    env_file:
+      - path: ./.env
+        required: false
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://app:8787
+    depends_on:
+      - app
+
+volumes:
+  client_node_modules:
+  worker_node_modules:

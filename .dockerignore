@@ -1,0 +1,6 @@
+.git
+**/node_modules
+**/.wrangler
+client/dist
+.env
+.dev.vars
