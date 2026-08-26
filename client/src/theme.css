@@ -49,6 +49,39 @@
   box-sizing: border-box;
 }
 
+/* ---------- embedded in Discord ---------- */
+
+/* Inside an activity panel the full neon room fights Discord's own chrome.
+   Embed mode quiets the aurora onto Discord grays, borrows the blurple, and
+   switches to the host's type stack — the warm paper board and each seat's
+   vivid ink stay as the game's identity. */
+html[data-embed] {
+  --bg: #16151d;
+  --bg-glow-a: #2c2560;
+  --bg-glow-b: #5e2a68;
+  --bg-glow-c: #6e3147;
+
+  --surface: rgba(43, 45, 49, 0.78);
+  --surface-solid: #2b2d31;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(255, 255, 255, 0.18);
+  --text: #f2f3f5;
+  --text-dim: #b5bac1;
+  --text-faint: #949ba4;
+
+  --accent-a: #8690ff;
+  --accent-b: #5865f2;
+  --good: #23a55a;
+  --bad: #f23f43;
+
+  --grad-accent: linear-gradient(135deg, #8690ff 0%, var(--accent-b) 70%);
+  --grad-cool: linear-gradient(135deg, var(--accent-b) 0%, #00a8fc 100%);
+}
+
+html[data-embed] body {
+  font-family: "gg sans", "Noto Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
 html {
   color-scheme: dark;
 }

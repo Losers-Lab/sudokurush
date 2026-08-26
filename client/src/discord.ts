@@ -8,8 +8,12 @@
 
 export const DISCORD_UA = /discord/i.test(navigator.userAgent);
 
+/** Dev escape hatch (?embed=1): preview activity styling in a plain browser,
+    same spirit as the #solo/#play demo hashes. */
+const EMBED_PARAM = new URLSearchParams(window.location.search).get("embed");
+
 export function isEmbedded(): boolean {
-  return window.frameElement !== null || DISCORD_UA;
+  return window.frameElement !== null || DISCORD_UA || EMBED_PARAM === "1";
 }
 
 /** Stamp embed state on <html> as early as possible so even the boot screen
