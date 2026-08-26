@@ -8,6 +8,7 @@
     "test": "node --test tests/*.test.mjs tests/*.test.ts",
     "packs:build": "node scripts/run-packs-build.mjs",
     "packs:validate": "node scripts/validate-puzzlepack.mjs assets/puzzles/*.puzzlepack.json",
-    "verify:room": "node scripts/verify-room.mjs"
+    "verify:room": "node scripts/verify-room.mjs",
+    "deploy": "npm --prefix client run build && npx --prefix worker wrangler deploy --config worker/wrangler.jsonc"
   }
 }
