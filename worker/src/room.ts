@@ -505,10 +505,9 @@ export class GameRoom extends DurableObject<Env> {
   private async ensureReady(): Promise<void> {
     this.ready ??= (async () => {
       const stored = await this.ctx.storage.get<StoredLobby>("lobby");
-      this.state =
-        stored === null
-          ? createLobby("medium")
-          : deserialize(stored as unknown as StoredLobby);
+      // Missing keys read as undefined on some runtime/type combos and null
+      // on others — cover both rather than trusting the annotation.
+      this.state = stored == null ? createLobby("medium") : deserialize(stored);
       for (const ws of this.ctx.getWebSockets()) {
         const attached = ws.deserializeAttachment() as SocketAttachment | null;
         if (attached && typeof attached.playerId === "string") {
