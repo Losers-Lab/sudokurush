@@ -8,6 +8,8 @@
     // `open:` namespace; Discord instances stay verified and unreachable from
     // the browser path, and embedded clients never join open rooms.
     "OPEN_ROOMS": "true",
+    // Lobby roster cap (1-30). Tune here without touching game code.
+    "MAX_PLAYERS": "8",
     // Fill in before deploying a Discord-enabled build (also set the secret
     // DISCORD_CLIENT_SECRET via `wrangler secret put`).
     "DISCORD_CLIENT_ID": ""

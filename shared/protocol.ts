@@ -1,3 +1,14 @@
+/**
+ * Wire contract between the browser client and the lobby relay.
+ *
+ * The server is the single source of truth: clients propose actions
+ * (`place`, `add-note`, `remove-note`), the relay validates them against the
+ * server-only solution and either applies them to the ONE shared board and
+ * broadcasts, or rejects privately. The Sudoku solution never crosses this
+ * contract — a client that knows the answers could auto-solve, so snapshots
+ * carry only what players may see (see LobbySnapshot).
+ */
+
 export type Player = {
   id: string;
   name: string;
@@ -5,53 +16,45 @@ export type Player = {
   avatar?: string | null;
 };
 
-export type Phase = "lobby" | "playing" | "victory";
+export type LobbyStatus = "waiting" | "in-progress" | "completed";
 
-/** Per-seat session totals; the relay owns them so rejoins recover fully. */
-export type RoundTally = {
-  /** Puzzles finished first — one point each. */
-  wins: number;
-  /** Puzzles finished at all, including after the winner claimed. */
-  solves: number;
-};
+export type Difficulty = "easy" | "medium" | "hard";
 
-export type RoomSnapshot = {
+/** Overridable via the worker's MAX_PLAYERS var; lobbies cap at this. */
+export const DEFAULT_MAX_PLAYERS = 8;
+
+/** Cell indexes 0..80, row-major. */
+export const CELL_COUNT = 81;
+
+export function isValidCellIndex(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value < CELL_COUNT;
+}
+
+export function isValidDigit(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 9;
+}
+
+export type LobbySnapshot = {
   hostId: string | null;
   players: Player[];
-  phase: Phase;
-  packId: string | null;
-  /**
-   * Full shuffled puzzle order fixed at start; identical on every client.
-   * Present only in the welcome and starting snapshots — every seat already
-   * holds it, so routine snapshots omit it to keep fan-out light.
-   */
-  order?: string[];
-  /** Index into `order` of the shared puzzle; null while not playing. */
-  orderIndex: number | null;
-  /** Host's choice at start: does this session grant stuck-player hints. */
-  hintsEnabled: boolean;
-  /** Correctly placed cell count per seat, for the live progress bars. */
-  progress: Record<string, number>;
-  /** Finish time (relay seconds) per seat for the CURRENT puzzle only. */
-  finishes: Record<string, number>;
-  tallies: Record<string, RoundTally>;
-  /** Seats that voted to return to the lobby; unanimous consent ends the session. */
-  lobbyVotes?: string[];
-  /** Lobby pack nominations, by player id — feeds the democratic random pick. */
-  packVotes?: Record<string, string>;
-  /** Relay-clock ms when the open nominations roll into a random choice. */
-  packVoteDeadline?: number;
-  /** The rolled winner; clients play the reveal, then the host starts it. */
-  chosenPackId?: string;
-  /**
-   * Relay-clock ms when the interlude between puzzles ends and the relay
-   * advances (or closes the session on the last puzzle). Present only while
-   * a winner has claimed and the countdown runs.
-   */
-  roundEndsAt?: number;
-  /** Derived convenience: order[orderIndex], null when out of game. */
-  puzzleId: string | null;
+  /** Seats with a live socket right now; roster entries without these are offline. */
+  onlineIds: string[];
+  status: LobbyStatus;
+  difficulty: Difficulty;
+  /** 81 chars, digits 1-9 + `.` blanks — the immutable starting clues. */
+  givens: string;
+  /** 81 chars — givens plus every accepted placement, `.` for empty cells. */
+  board: string;
+  /** Placed cell index → playerId of whoever filled it (givens have no owner). */
+  owners: Record<string, string>;
+  /** Shared pencil marks: cell index → sorted digits. */
+  notes: Record<string, number[]>;
+  /** Wrong submissions per player this game. */
+  mistakes: Record<string, number>;
+  /** Correct placements per player this game — the victory screen's contribution stat. */
+  placements: Record<string, number>;
   startedAt: number | null;
+  completedAt: number | null;
   /**
    * Relay clock at snapshot time. startedAt lives on the relay's clock, so
    * clients anchor an offset against this instead of assuming NTP-perfect
@@ -61,7 +64,7 @@ export type RoomSnapshot = {
 };
 
 /**
- * Exact wire frames of the browser keepalive. GameRoom registers its
+ * Exact wire frames of the browser keepalive. The lobby registers its
  * hibernation auto-responder against these literal bytes — build both sides
  * from these constants so the pair can never drift apart.
  */
@@ -71,35 +74,31 @@ export const PONG_MESSAGE: ServerMessage = { t: "pong" };
 export type ClientMessage =
   | { t: "hello"; name: string; avatar?: string | null }
   | { t: "ping" }
-  /** Host-only: launch a session over `order` (shuffled puzzle ids). */
-  | { t: "start"; packId: string; order: string[]; hints?: boolean }
-  /** A digit locked into cell i (0..80); relayed live, never stored. */
+  /**
+   * Host-only. From `waiting`: launch the game. From `completed`: deal a
+   * fresh puzzle (same message, new board) — one verb covers both so the
+   * relay stays minimal.
+   */
+  | { t: "start"; difficulty?: Difficulty }
+  /** Submit a digit for an empty editable cell; the relay judges correctness. */
   | { t: "place"; i: number; v: number }
-  /** Correctly placed cell count; persisted for the progress bars. */
-  | { t: "progress"; placed: number }
-  /** This seat completed the current puzzle; first claim wins it. */
-  | { t: "solved"; seconds: number }
-  /** During an interlude: vote to skip the wait and advance now. */
-  | { t: "next" }
-  /** Host-only: leave victory (or abort a session) and reopen the picker. */
-  | { t: "lobby" }
-  /** Any player: toggle a vote to send everyone back to the picker. */
-  | { t: "vote-lobby" }
-  /** Lobby: nominate a pack for the democratic random roll. */
-  | { t: "pack-vote"; packId: string }
-  /** Lobby: nudge the relay to roll nominations whose deadline has passed. */
-  | { t: "pack-vote-resolve" };
+  | { t: "add-note"; i: number; v: number }
+  | { t: "remove-note"; i: number; v: number }
+  /** Which cell this seat has selected; relayed live, never stored. */
+  | { t: "cursor"; i: number };
 
 export type ServerMessage =
-  | { t: "welcome"; you: string; snapshot: RoomSnapshot }
-  | { t: "snapshot"; snapshot: RoomSnapshot }
+  | { t: "welcome"; you: string; snapshot: LobbySnapshot }
+  | { t: "snapshot"; snapshot: LobbySnapshot }
   | { t: "host"; hostId: string }
-  /** Live peer placement so rival boards visibly fill in. */
-  | { t: "place"; byPlayer: string; i: number; v: number }
-  | { t: "round-won"; byPlayer: string; seconds: number }
-  /** Session closed on the last puzzle; carries its winner for the fanfare. */
-  | { t: "session-end"; byPlayer: string; seconds: number }
-  | { t: "rejected"; reason: string }
+  /** A placement was accepted; every client paints cell i immediately. */
+  | { t: "cell-updated"; i: number; v: number; byPlayer: string }
+  /** Shared note state changed; `values` is the full sorted list for the cell. */
+  | { t: "note-changed"; i: number; values: number[]; byPlayer: string }
+  /** Private to the submitter: that digit does not belong in cell i. */
+  | { t: "invalid"; i: number }
+  | { t: "cursor"; byPlayer: string; i: number }
+  | { t: "rejected"; reason: string; i?: number }
   | { t: "pong" };
 
 /**
