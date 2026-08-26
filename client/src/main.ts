@@ -258,9 +258,25 @@ function openSocketRoom(roomId: string): void {
   destroyBootIfAny();
   currentRoomId = roomId;
   reconnectAttempt = 0;
+  syncRoomUrl(roomId);
   client?.dispose();
   client = new GameClient(gameEvents(), identity.name, identity.avatar);
   connectAttempt();
+}
+
+/**
+ * The lobby screen reads its shareable code straight out of the URL, so an
+ * `open:` room keeps ?room= current: a fresh lobby gets a copyable invite and
+ * a refresh rejoins instead of dumping back at the menu. Discord instance ids
+ * are not joinable codes and never belong in the address bar.
+ */
+function syncRoomUrl(roomId: string): void {
+  if (!roomId.startsWith("open:")) {
+    return;
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("room", roomId.slice("open:".length));
+  window.history.replaceState(null, "", url);
 }
 
 function connectAttempt(): void {
